@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: microsoft/setup-msbuild@v2
+      - uses: nuget/setup-nuget@v2
+      - name: Restore
+        run: nuget restore "TicketSystem.sln"
+      - name: Get .NET Framework 4.5 reference assemblies
+        run: nuget install Microsoft.NETFramework.ReferenceAssemblies.net45 -Version 1.0.3 -OutputDirectory refs
+      - name: Build
+        run: msbuild "TicketSystem/TicketSystem.csproj" /p:SolutionDir="$env:GITHUB_WORKSPACE\\" /p:TargetFrameworkRootPath="$env:GITHUB_WORKSPACE\refs\Microsoft.NETFramework.ReferenceAssemblies.net45.1.0.3\build" /p:Configuration=Release /m /v:minimal
